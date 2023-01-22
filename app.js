@@ -1,3 +1,5 @@
+
+// npm run dev (nodemon) or npm run start
 const express = require('express');
 const formidable = require('formidable');
 const fs = require('fs');
