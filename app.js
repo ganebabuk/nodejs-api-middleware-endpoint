@@ -86,16 +86,14 @@ app.post('/api/test-post/:name', (req, res) => {
 });
 
 app.get('/api/external-get', (req, res) => {
-  axios
-    .get('https://reqres.in/api/users?page=1')
-    .then((ires) => {
-      console.log(`statusCode: ${ires.status}`);
-      console.log('ires', ires.data);
-      res.status(200).json({ data: ires.data });
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+    fetch('https://reqres.in/api/users?page=1')
+      .then(resData => resData.json())
+      .then((resData2) => {
+        res.status(200).json({ data222: resData2.data });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 });
 
 app.get('/api/external-post', (req, res) => {
@@ -124,7 +122,7 @@ app.get('/api/concurrent', async (req, res) => {
     const result = await Promise.all(requests);
     const response = { users: [] };
     result.map((results) => {
-      response['users'].push(results.data);
+      response['users'] = [...response['users'], results.data];
     });
     res.status(200).json(response);
   } catch (err) {
