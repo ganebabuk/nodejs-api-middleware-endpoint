@@ -48,24 +48,27 @@ app.get('/api/infinity', (req, res) => {
   }
 });
 
-app.post('/api/file-upload', (req, res) => {
+app.post('/api/file-upload', (req, res, next) => {
   // client side sending the data through FormData
   const form = new formidable.IncomingForm();
   const renamedFile = randomstring.generate(15);
   form.parse(req, (err, fields, files) => {
     if (err) {
+      res.status(500).send(err);
       next(err);
-      return;
     }
     console.log('inputFields:::', fields);
-    console.log('files:::', files?.fileUploaded?.path);
-    console.log('Dirname: ', __dirname);
-    let oldPath = files.fileUploaded.path;
+    console.log('inPutFiles:::', files?.fileUploaded?.path);
+    let oldPath = files?.fileUploaded?.path;
     let newPath = `${path.join(__dirname, 'uploads')}/${renamedFile}${path.extname(files?.fileUploaded?.name)}`;
     let rawData = fs.readFileSync(oldPath)
     fs.writeFile(newPath, rawData, (err) => {
-      if (err) console.log(err)
-      res.status(201).json({ success: 'file uploaded successfully.' });
+      if (err) { 
+        console.log(err)
+        res.status(500).send(err);
+      } else {
+        res.status(201).json({ success: 'file uploaded successfully.' });
+      }
     });
   })
   // .on('fileBegin', (name, file) => {
