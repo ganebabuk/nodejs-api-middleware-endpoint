@@ -48,41 +48,48 @@ app.get('/api/infinity', (req, res) => {
   }
 });
 
-app.post('/api/fileupload', (req, res) => {
-  const form = formidable({ multiples: true });
+app.post('/api/file-upload', (req, res) => {
+  // client side sending the data through FormData
+  const form = new formidable.IncomingForm();
+  const renamedFile = randomstring.generate(15);
   form.parse(req, (err, fields, files) => {
     if (err) {
-      res.status(503).json({ Error: 'Server Error.' });
       next(err);
       return;
     }
-    // console.log({ fields, files });
-    const readStream = fs.createReadStream(files.uploadedfile.path);
-    const ext = path.extname(files.uploadedfile.name);
-    var writeStream = fs.createWriteStream(
-      './uploads/' + randomstring.generate(15) + ext
-    );
-    readStream.pipe(writeStream);
-    readStream.on('end', () => {
-      fs.unlinkSync(files.uploadedfile.path);
-      console.log('end');
+    console.log('inputFields:::', fields);
+    console.log('files:::', files?.fileUploaded?.path);
+    console.log('Dirname: ', __dirname);
+    let oldPath = files.fileUploaded.path;
+    let newPath = `${path.join(__dirname, 'uploads')}/${renamedFile}${path.extname(files?.fileUploaded?.name)}`;
+    let rawData = fs.readFileSync(oldPath)
+    fs.writeFile(newPath, rawData, (err) => {
+      if (err) console.log(err)
+      res.status(201).json({ success: 'file uploaded successfully.' });
     });
-    readStream.on('close', () => {
-      console.log('close');
-      res.status(201).json({ success: 'File uploded successfiuly.' });
-    });
-    readStream.on('error', (err) => {
-      console.log('Error', err);
-      res.status(503).json({ Error: 'Server Error.' });
-    });
-  });
+  })
+  // .on('fileBegin', (name, file) => {
+  //   file.path = `${__dirname}/uploads/${renamedFile}${path.extname(file?.name)}`;
+  // })
+  // .on('file', (name, file) => {
+  //   fs.rename(file.path, `${__dirname}/uploads/${renamedFile}${path.extname(file?.name)}`, () => {
+  //     console.log('file renamed');
+  //   });
+  // })
+  // .on('field', (name, field) => {
+  //   console.log('Name: ', name);
+  //   console.log('Value: ', field);
+  // })
+  // .on('end', () => {
+  //   res.status(201).json({ success: 'file uploaded successfully.' });
+  // });
 });
 
 app.post('/api/test-post/:name', (req, res) => {
   console.log('body: ', req.body.fullname);
   console.log('params: ', req.params.name);
   console.log('query: ', req.query.id);
-  res.status(201).json({ success: 'Data saved successfiuly.' });
+  res.status(201).json({ success: 'Data saved successfully.' });
 });
 
 app.get('/api/external-get', (req, res) => {
