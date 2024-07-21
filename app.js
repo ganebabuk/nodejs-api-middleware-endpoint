@@ -6,6 +6,8 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const randomstring = require('randomstring');
+const dbConfig = require("./config/db-config");
+const Users = require('./models/user');
 const app = express();
 
 app.use((req, res, next) => {
@@ -138,6 +140,27 @@ app.get('/api/concurrent', async (req, res) => {
   } catch (err) {
     res.status(503).json({ error: String(err) });
   }
+});
+
+app.get('/api/db', async(req, res) => {
+  try {
+    const users = new Users({
+      _id: 'kganeshbabu.it@gmail.com',
+      first_name : 'ganesh babu',
+      last_name: 'kuppusamy',
+      date_created: new Date()
+    });
+    await users.save();
+    res.status(201).json({
+        message: "Successfully created!",
+    });
+  } catch(e) {
+    console.error("Couldn't create the account", e);
+    res.status(500).json({
+      message: "Couldn't create the account",
+      error: e
+    });
+  };
 });
 
 app.listen(3030, () => {
