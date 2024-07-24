@@ -184,6 +184,7 @@ app.get('/api/db/read', async(req, res) => {
           user: { $first: "$$ROOT" }
         }
       },
+      // with showing the record which has min age
       {
         $project: {
           _id: 0,
@@ -200,6 +201,7 @@ app.get('/api/db/read', async(req, res) => {
           user: { $first: "$$ROOT" }
         }
       },
+      // with showing the record which has max age
       {
         $project: {
           _id: 0,
@@ -212,7 +214,7 @@ app.get('/api/db/read', async(req, res) => {
       {
         $group: {
           _id: null,
-          totalAge: { $sum: "$age" }
+          sumAge: { $sum: "$age" }
         }
       }
     ]);
@@ -220,7 +222,7 @@ app.get('/api/db/read', async(req, res) => {
       {
         $group: {
           _id: null,
-          totalAge: { $avg: "$age" }
+          avgAge: { $avg: "$age" }
         }
       }
     ]);
