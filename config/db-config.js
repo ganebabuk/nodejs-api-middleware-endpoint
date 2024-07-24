@@ -5,7 +5,7 @@ const connectDB = async() => {
     console.log("Connected to the atlas.");    
   }
   catch(error) {
-    console.error("Could not connect to theatlas.", error);
+    console.error("Could not connect to the atlas. Error: ", error);
   }; 
 }   
 connectDB(); 
