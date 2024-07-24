@@ -184,7 +184,7 @@ app.get('/api/db/read', async(req, res) => {
           user: { $first: "$$ROOT" }
         }
       },
-      // with showing the record which has min age
+      // with showing the record which have min age
       {
         $project: {
           _id: 0,
@@ -201,7 +201,7 @@ app.get('/api/db/read', async(req, res) => {
           user: { $first: "$$ROOT" }
         }
       },
-      // with showing the record which has max age
+      // with showing the record which have max age
       {
         $project: {
           _id: 0,
