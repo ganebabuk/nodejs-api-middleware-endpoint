@@ -4,6 +4,7 @@ const userProfileSchema = mongoose.Schema({
   _id: { type: String, required: true },
   first_name: { type: String, required: true },
   last_name: { type: String, required: true },
+  age: { type: Number, required: true },
   date_created: { type: Date, required: true}
 });
 

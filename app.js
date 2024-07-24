@@ -142,12 +142,14 @@ app.get('/api/concurrent', async (req, res) => {
   }
 });
 
-app.get('/api/db', async(req, res) => {
+app.get('/api/db/insert', async(req, res) => {
   try {
+    const email = randomstring.generate(15);
     const users = new Users({
-      _id: 'kganeshbabu.it@gmail.com',
+      _id: `${email}@test.com`,
       first_name : 'ganesh babu',
       last_name: 'kuppusamy',
+      age: 41,
       date_created: new Date()
     });
     await users.save();
@@ -158,6 +160,87 @@ app.get('/api/db', async(req, res) => {
     console.error("Couldn't create the account", e);
     res.status(500).json({
       message: "Couldn't create the account",
+      error: e
+    });
+  };
+});
+
+app.get('/api/db/read', async(req, res) => {
+  try {
+    const dataAll = await Users.find().limit();
+    // you can also find()
+    const dataFindByEmail = await Users.findOne({"_id": "jrsCM3V8YMMgw5z@test.com"});
+    const dataLimit = await Users.find().limit(1);
+    // _id i.e. email sorting in asc because it's string and age sorting in desc so only given -1
+    const dataOrder = await Users.find().collation({locale: "en" }).sort({_id: "asc", age: -1});
+    // sorting recently created record
+    const dataOrder2 = await Users.find().collation({locale: "en" }).sort({date_created: -1});
+    const dataFindWithAgreegate = await Users.find({age: { $gte: 21, $lte: 32 }});
+    const aggregatedData = await Users.aggregate([
+      {
+        $group: {
+          _id: null,
+          minAge: { $min: "$age" },
+          user: { $first: "$$ROOT" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          minAge: 1,
+          user: 1
+        }
+      }
+    ]);
+    const aggregatedData2 = await Users.aggregate([
+      {
+        $group: {
+          _id: null,
+          maxAge: { $max: "$age" },
+          user: { $first: "$$ROOT" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          maxAge: 1,
+          user: 1
+        }
+      }
+    ]);
+    const aggregatedData3 = await Users.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalAge: { $sum: "$age" }
+        }
+      }
+    ]);
+    const aggregatedData4 = await Users.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalAge: { $avg: "$age" }
+        }
+      }
+    ]);
+    res.status(200).json({
+        data1: dataAll,
+        data2: dataFindByEmail,
+        data3: dataLimit,
+        data4: dataOrder,
+        data5: dataOrder2,
+        data6: dataOrder2,
+        data7: dataFindWithAgreegate,
+        data8: aggregatedData,
+        data9: aggregatedData2,
+        data10: aggregatedData3,
+        data11: aggregatedData4
+    });
+  } catch(e) {
+    console.error("Couldn't find the user(s)", e);
+    res.status(500).json({
+      message: "Couldn't find the user(s)",
       error: e
     });
   };
