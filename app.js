@@ -142,14 +142,15 @@ app.get('/api/concurrent', async (req, res) => {
   }
 });
 
+// Create
 app.get('/api/db/insert', async(req, res) => {
   try {
     const email = randomstring.generate(15);
     const users = new Users({
       _id: `${email}@test.com`,
-      first_name : 'ganesh babu',
-      last_name: 'kuppusamy',
-      age: 41,
+      first_name : 'ram',
+      last_name: 'kumar2',
+      age: 31,
       date_created: new Date()
     });
     await users.save();
@@ -165,6 +166,7 @@ app.get('/api/db/insert', async(req, res) => {
   };
 });
 
+// Read
 app.get('/api/db/read', async(req, res) => {
   try {
     const dataAll = await Users.find().limit();
@@ -265,6 +267,45 @@ app.get('/api/db/read', async(req, res) => {
     console.error("Couldn't find the user(s)", e);
     res.status(500).json({
       message: "Couldn't find the user(s)",
+      error: e
+    });
+  };
+});
+
+// Update
+app.get('/api/db/update', async(req, res) => {
+  try {
+    const findQuery = {_id: 'BiKz7UplStFjRjo@test.com' };
+    const updateQuery = {first_name: 'ganesh babu2'};
+    const updateQuery2 = { $push: { marks: { english: 60, maths: 80 } } };
+    await Users.findOneAndUpdate(findQuery, updateQuery);
+    await Users.updateMany(findQuery, updateQuery2, { new: true });
+    res.status(200).json({
+      status: 'Updated successfully.'
+    });
+  } catch(e) {
+    console.error("Couldn't update the data(s)", e);
+    res.status(500).json({
+      message: "Couldn't update the data(s)",
+      error: e
+    });
+  };
+});
+
+// Delete
+app.get('/api/db/delete', async(req, res) => {
+  try {
+    const deleteQuery = { first_name: 'ganesh babu2' };
+    await Users.deleteOne(deleteQuery);
+    const deleteQuery2 = {};
+    await Users.deleteMany(deleteQuery2);
+    res.status(200).json({
+      status: 'deleted successfully.'
+    });
+  } catch(e) {
+    console.error("Couldn't update the data(s)", e);
+    res.status(500).json({
+      message: "Couldn't update the data(s)",
       error: e
     });
   };

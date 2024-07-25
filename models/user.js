@@ -5,7 +5,13 @@ const userProfileSchema = mongoose.Schema({
   first_name: { type: String, required: true },
   last_name: { type: String, required: true },
   age: { type: Number, required: true },
-  date_created: { type: Date, required: true}
+  date_created: { type: Date, required: true},
+  marks: [
+    {
+      english: { type: Number, required: false },
+      maths: { type: Number, required: false }
+    }
+  ]
 });
 
 module.exports = mongoose.model('User', userProfileSchema);
