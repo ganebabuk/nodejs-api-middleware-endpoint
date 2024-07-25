@@ -5,13 +5,14 @@ const userProfileSchema = mongoose.Schema({
   first_name: { type: String, required: true },
   last_name: { type: String, required: true },
   age: { type: Number, required: true },
-  date_created: { type: Date, required: true},
+  gender: {type: String, required: true},
   marks: [
     {
-      english: { type: Number, required: false },
-      maths: { type: Number, required: false }
+      english: { type: Number, required: true },
+      maths: { type: Number, required: true }
     }
-  ]
+  ],
+  date_created: { type: Date, required: true},
 });
 
 module.exports = mongoose.model('User', userProfileSchema);

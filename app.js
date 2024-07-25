@@ -8,6 +8,7 @@ const axios = require('axios');
 const randomstring = require('randomstring');
 const dbConfig = require("./config/db-config");
 const Users = require('./models/user');
+const Gender = require('./models/gender');
 const app = express();
 
 app.use((req, res, next) => {
@@ -151,7 +152,14 @@ app.get('/api/db/insert', async(req, res) => {
       first_name : 'ram',
       last_name: 'kumar2',
       age: 31,
-      date_created: new Date()
+      gender: 'M',
+      marks: [
+        {
+          english: 50,
+          maths: 60
+        }
+      ],
+      date_created: new Date(),
     });
     await users.save();
     res.status(201).json({
@@ -171,7 +179,7 @@ app.get('/api/db/read', async(req, res) => {
   try {
     const dataAll = await Users.find().limit();
     // you can also find()
-    const dataFindByEmail = await Users.findOne({"_id": "jrsCM3V8YMMgw5z@test.com"});
+    const dataFindByEmail = await Users.find({"_id":  { $regex: /BesuEq6oFXRir3c@TEST.com/, $options: 'i' }}).select("first_name last_name");
     const dataLimit = await Users.find().limit(1);
     // _id i.e. email sorting in asc because it's string and age sorting in desc so only given -1
     const dataOrder = await Users.find().collation({locale: "en" }).sort({_id: "asc", age: -1});
@@ -245,6 +253,31 @@ app.get('/api/db/read', async(req, res) => {
     const usersWithPattern2 = await Users.find({ first_name: { $regex: /U$/, $options: 'i'  } });
     // containing 'NE'
     const usersWithPattern3 = await Users.find({ first_name: { $regex: /ne/, $options: 'i'  } });
+    // join
+    const joins = await Users.aggregate([
+      {
+        $lookup: {
+          from: 'gender', // The collection name in the database
+          localField: 'gender', // Field in UserProfile to match
+          foreignField: 'key', // Field in Gender to match
+          as: 'genderDetails' // Output array field
+        }
+      },
+      {
+        $unwind: '$genderDetails' // Unwind the array to get objects instead of arrays
+      },
+      {
+        $project: {
+          _id: 1,
+          first_name: 1,
+          last_name: 1,
+          age: 1,
+          'sex': '$genderDetails.value', // Include the `value` field from genderDetails
+          marks: 1,
+          date_created: 1
+        }
+      }
+    ]);
     res.status(200).json({
         data1: dataAll,
         data2: dataFindByEmail,
@@ -261,7 +294,8 @@ app.get('/api/db/read', async(req, res) => {
         data13: userCount2,
         data14: usersWithPattern,
         data15: usersWithPattern2,
-        data16: usersWithPattern3
+        data16: usersWithPattern3,
+        data17: joins
     });
   } catch(e) {
     console.error("Couldn't find the user(s)", e);
@@ -275,11 +309,16 @@ app.get('/api/db/read', async(req, res) => {
 // Update
 app.get('/api/db/update', async(req, res) => {
   try {
-    const findQuery = {_id: 'BiKz7UplStFjRjo@test.com' };
-    const updateQuery = {first_name: 'ganesh babu2'};
-    const updateQuery2 = { $push: { marks: { english: 60, maths: 80 } } };
+    const findQuery = {_id: 'BesuEq6oFXRir3c@test.com' };
+    const updateQuery = {first_name: 'ganesh babu', last_name: 'kuppusamy'};
+    // push additional element
+    // const updateQuery2 = { $push: { marks: { english: 60, maths: 70 } } };
+    // update single element
+    // const updateQuery2 = { $set: { 'marks.0.english': 60, 'marks.0.maths': 70 } };
+    // all the indexes of marks
+    const updateQuery2 = { $set: { marks: { english: 76, maths: 77 } } };
     await Users.findOneAndUpdate(findQuery, updateQuery);
-    await Users.updateMany(findQuery, updateQuery2, { new: true });
+    await Users.updateMany(findQuery, updateQuery2);
     res.status(200).json({
       status: 'Updated successfully.'
     });
