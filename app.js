@@ -226,6 +226,23 @@ app.get('/api/db/read', async(req, res) => {
         }
       }
     ]);
+    // normal count
+    const userCount = await Users.countDocuments({ first_name: 'ganesh babu' });
+    // count with aggregate
+    const userCount2 = await Users.aggregate([
+      {
+        $match: { age: {$gt: 30 }}
+      },
+      {
+        $count: "count"
+      }
+    ]);
+    // start with 'G'
+    const usersWithPattern = await Users.find({ first_name: { $regex: /^G/, $options: 'i' } });
+    // end with 'U'
+    const usersWithPattern2 = await Users.find({ first_name: { $regex: /U$/, $options: 'i'  } });
+    // containing 'NE'
+    const usersWithPattern3 = await Users.find({ first_name: { $regex: /ne/, $options: 'i'  } });
     res.status(200).json({
         data1: dataAll,
         data2: dataFindByEmail,
@@ -237,7 +254,12 @@ app.get('/api/db/read', async(req, res) => {
         data8: aggregatedData,
         data9: aggregatedData2,
         data10: aggregatedData3,
-        data11: aggregatedData4
+        data11: aggregatedData4,
+        data12: userCount,
+        data13: userCount2,
+        data14: usersWithPattern,
+        data15: usersWithPattern2,
+        data16: usersWithPattern3
     });
   } catch(e) {
     console.error("Couldn't find the user(s)", e);
