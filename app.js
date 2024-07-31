@@ -148,7 +148,7 @@ app.get('/api/db/insert', async(req, res) => {
   try {
     const email = randomstring.generate(15);
     const users = new Users({
-      _id: `${email}@test.com`,
+      email: `${email}@test.com`,
       first_name : 'ram',
       last_name: 'kumar2',
       age: 31,
@@ -179,10 +179,10 @@ app.get('/api/db/read', async(req, res) => {
   try {
     const dataAll = await Users.find().limit();
     // you can also find()
-    const dataFindByEmail = await Users.find({"_id":  { $regex: /BesuEq6oFXRir3c@TEST.com/, $options: 'i' }}).select("first_name last_name");
+    const dataFindByEmail = await Users.find({"email":  { $regex: /BesuEq6oFXRir3c@TEST.com/, $options: 'i' }}).select("first_name last_name");
     const dataLimit = await Users.find().limit(1);
-    // _id i.e. email sorting in asc because it's string and age sorting in desc so only given -1
-    const dataOrder = await Users.find().collation({locale: "en" }).sort({_id: "asc", age: -1});
+    // email sorting in asc because it's string and age sorting in desc so only given -1
+    const dataOrder = await Users.find().collation({locale: "en" }).sort({email: "asc", age: -1});
     // sorting recently created record
     const dataOrder2 = await Users.find().collation({locale: "en" }).sort({date_created: -1});
     const dataFindWithAgreegate = await Users.find({age: { $gte: 21, $lte: 32 }});
