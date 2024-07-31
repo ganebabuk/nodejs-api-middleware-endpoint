@@ -1,5 +1,6 @@
 
 // npm run dev (nodemon) or npm run start
+const env = require('dotenv').config();
 const express = require('express');
 const formidable = require('formidable');
 const fs = require('fs');

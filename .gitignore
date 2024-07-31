@@ -81,3 +81,7 @@ API
 Training
 Blog
 About
+
+# local env files
+.env*.local
+.env
