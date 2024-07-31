@@ -9,7 +9,6 @@ const axios = require('axios');
 const randomstring = require('randomstring');
 const dbConfig = require("./config/db-config");
 const Users = require('./models/user');
-const Gender = require('./models/gender');
 const app = express();
 
 app.use((req, res, next) => {
@@ -150,8 +149,8 @@ app.get('/api/db/insert', async(req, res) => {
     const email = randomstring.generate(15);
     const users = new Users({
       email: `${email}@test.com`,
-      first_name : 'ram',
-      last_name: 'kumar2',
+      first_name : 'ganesh babu',
+      last_name: 'kuppusamy',
       age: 31,
       gender: 'M',
       marks: [

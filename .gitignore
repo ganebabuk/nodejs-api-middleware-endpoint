@@ -85,3 +85,5 @@ About
 # local env files
 .env*.local
 .env
+
+package-lock.json
