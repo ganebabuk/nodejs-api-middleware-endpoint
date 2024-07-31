@@ -1,7 +1,11 @@
 const mongoose = require("mongoose");
 const dbConfiguration = async() => {
+  const MONGODB_URI = process?.env?.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error("Please define the MONGODB_URI environment variable inside .env");
+  }
   try {
-    await mongoose.connect("mongodb+srv://<username>:<password>@cluster0.p5xlgf9.mongodb.net/<db_name>?retryWrites=true&w=majority&appName=<cluster_name>");
+    await mongoose.connect(MONGODB_URI);
     console.log("Connected to the atlas cloud."); 
   } catch(error) {
     console.error("Could not connect to the atlas cloud. ", error);
