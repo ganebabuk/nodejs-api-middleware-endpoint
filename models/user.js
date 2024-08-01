@@ -15,4 +15,4 @@ const userProfileSchema = mongoose.Schema({
   date_created: { type: Date, required: true},
 });
 
-module.exports = mongoose.model('User', userProfileSchema);
+module.exports = mongoose.model('Users', userProfileSchema);
