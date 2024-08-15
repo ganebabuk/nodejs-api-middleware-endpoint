@@ -350,6 +350,15 @@ app.get('/api/db/delete', async(req, res) => {
   };
 });
 
+app.get('/api/timeout', (req, res) => {
+  const timeoutId = setTimeout(() => {
+    res.status(503).json({ error: 'Request timed out' });
+  }, 5000); // 5 seconds timeout
+
+  // Simulate long-running task
+  // clearTimeout(timeoutId) if the task completes successfully
+});
+
 app.listen(3030, () => {
   console.log(`app listening at 3030`);
 });
