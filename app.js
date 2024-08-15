@@ -309,7 +309,7 @@ app.get('/api/db/read', async(req, res) => {
 // Update
 app.get('/api/db/update', async(req, res) => {
   try {
-    const findQuery = {_id: 'BesuEq6oFXRir3c@test.com' };
+    const findQuery = {email: 'BesuEq6oFXRir3c@test.com' };
     const updateQuery = {first_name: 'ganesh babu', last_name: 'kuppusamy'};
     // push additional element
     // const updateQuery2 = { $push: { marks: { english: 60, maths: 70 } } };
@@ -342,9 +342,9 @@ app.get('/api/db/delete', async(req, res) => {
       status: 'deleted successfully.'
     });
   } catch(e) {
-    console.error("Couldn't update the data(s)", e);
+    console.error("Couldn't delete the data(s)", e);
     res.status(500).json({
-      message: "Couldn't update the data(s)",
+      message: "Couldn't delete the data(s)",
       error: e
     });
   };
