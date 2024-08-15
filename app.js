@@ -98,47 +98,47 @@ app.post('/api/test-post/:name', (req, res) => {
   res.status(201).json({ success: 'Data saved successfully.' });
 });
 
-app.get('/api/external-get', (req, res) => {
-    fetch('https://reqres.in/api/users?page=1')
-      .then(resData => resData.json())
-      .then((resData2) => {
-        res.status(200).json({ data222: resData2.data });
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+app.get('/api/external-get', async(req, res) => {
+  try {
+    const response = await fetch('https://reqres.in/api/users?page=1');
+    const data = await response.json();
+    if (data) {
+      res.status(200).json({ data: data });
+    }
+  } catch (e) {
+    console.error("Couldn't get the data.", e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
-app.get('/api/external-post', (req, res) => {
-  axios
-    .post('https://reqres.in/api/users', {
+app.get('/api/external-post', async(req, res) => {
+  try {
+    const ires = await axios.post('https://reqres.in/api/users', {
       name: 'morpheus',
       job: 'leader',
-    })
-    .then((ires) => {
-      console.log(`statusCode: ${ires.status}`);
-      console.log('ires', ires.data);
-      res.status(201).json({ data: ires.data });
-    })
-    .catch((error) => {
-      console.error(error);
     });
+  
+    console.log(`statusCode: ${ires.status}`);
+    console.log('ires', ires.data);
+  
+    res.status(201).json({ data: ires.data });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get('/api/concurrent', async (req, res) => {
-  const pageno = [1, 2];
-  const requests = pageno.map((date) =>
-    axios.get(`https://reqres.in/api/users?page=${pageno}`)
-  );
-  console.log('requests:', requests);
   try {
+    const pageno = [1, 2];
+    const requests = pageno.map((page) =>
+      axios.get(`https://reqres.in/api/users?page=${page}`)
+    );
     const result = await Promise.all(requests);
-    const response = { users: [] };
-    result.map((results) => {
-      response['users'] = [...response['users'], results.data];
-    });
-    res.status(200).json(response);
+    const users = result.flatMap((res) => res.data.data); // Flatten and merge user data
+    res.status(200).json({ users });
   } catch (err) {
+    console.error('Error fetching data:', err);
     res.status(503).json({ error: String(err) });
   }
 });
@@ -177,7 +177,7 @@ app.get('/api/db/insert', async(req, res) => {
 // Read
 app.get('/api/db/read', async(req, res) => {
   try {
-    const dataAll = await Users.find().limit();
+    const dataAll = await Users.find();
     // you can also find()
     const dataFindByEmail = await Users.find({"email":  { $regex: /BesuEq6oFXRir3c@TEST.com/, $options: 'i' }}).select("first_name last_name");
     const dataLimit = await Users.find().limit(1);
@@ -279,23 +279,23 @@ app.get('/api/db/read', async(req, res) => {
       }
     ]);
     res.status(200).json({
-        data1: dataAll,
-        data2: dataFindByEmail,
-        data3: dataLimit,
-        data4: dataOrder,
-        data5: dataOrder2,
-        data6: dataOrder2,
-        data7: dataFindWithAgreegate,
-        data8: aggregatedData,
-        data9: aggregatedData2,
-        data10: aggregatedData3,
-        data11: aggregatedData4,
-        data12: userCount,
-        data13: userCount2,
-        data14: usersWithPattern,
-        data15: usersWithPattern2,
-        data16: usersWithPattern3,
-        data17: joins
+      dataAll: dataAll,
+      dataFindByEmail: dataFindByEmail,
+      dataLimit: dataLimit,
+      dataOrder: dataOrder,
+      dataOrder2: dataOrder2,
+      dataOrder2: dataOrder2,
+      dataFindWithAgreegate: dataFindWithAgreegate,
+      aggregatedData: aggregatedData,
+      aggregatedData2: aggregatedData2,
+      aggregatedData3: aggregatedData3,
+      aggregatedData4: aggregatedData4,
+      userCount: userCount,
+      userCount2: userCount2,
+      usersWithPattern: usersWithPattern,
+      usersWithPattern2: usersWithPattern2,
+      usersWithPattern3: usersWithPattern3,
+      joins: joins
     });
   } catch(e) {
     console.error("Couldn't find the user(s)", e);

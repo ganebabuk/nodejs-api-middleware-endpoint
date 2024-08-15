@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+mongoose.set('debug', true);
 
 const userProfileSchema = mongoose.Schema({
   email: { type: String, required: true, unique: true, index: true },
