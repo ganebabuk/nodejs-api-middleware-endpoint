@@ -272,7 +272,7 @@ app.get('/api/db/read', async(req, res) => {
           first_name: 1,
           last_name: 1,
           age: 1,
-          'sex': '$genderDetails.value', // Include the `value` field from genderDetails
+          gender: '$genderDetails.value', // Include the `value` field from genderDetails
           marks: 1,
           date_created: 1
         }
