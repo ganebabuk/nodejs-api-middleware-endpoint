@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const dbConfiguration = async() => {
   // for development, please create .env file under the root and add MONGODB_URI=CONNECTION_STRING
-  const MONGODB_URI = process?.env?.MONGODB_URI2;
+  const MONGODB_URI = process?.env?.MONGODB_URI;
   try {
     await mongoose.connect(MONGODB_URI);
     console.log("Connected to the atlas cloud."); 
