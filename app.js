@@ -10,7 +10,6 @@ const randomstring = require('randomstring');
 const dbConfig = require("./config/db-config");
 const Users = require('./models/user');
 const app = express();
-
 app.use((req, res, next) => {
   const allowedOrigins = ['http://localhost:3000'];
   if (allowedOrigins.indexOf(req.headers.origin) > -1) {
@@ -34,7 +33,7 @@ app.use(
 );
 
 app.get('/api/user', (req, res) => {
-  res.status(200).json({ fullname: 'ganesh babu kuppusamy', country: 'India' });
+    res.status(200).json({ fullname: 'ganesh babu kuppusamy', country: 'India' });
 });
 
 app.get('/api/infinity', (req, res) => {
