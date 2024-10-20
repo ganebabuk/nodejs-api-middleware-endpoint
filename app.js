@@ -9,9 +9,29 @@ const axios = require('axios');
 const randomstring = require('randomstring');
 const dbConfig = require("./config/db-config");
 const Users = require('./models/user');
+const http = require('http');
+const url = require('url');
+const cors = require('cors');
+const session = require('express-session');
+const redis = require('redis');
+const authRoutes = require('./routes/auth');
+// const connectRedis = require('connect-redis');
+// const RedisStore = connectRedis(session);
+// const redisClient = redis.createClient();
 const app = express();
+const allowedOrigins = ['http://localhost:3000'];
+// Retrieve secret from environment variable or configuration
+const sessionSecret = process.env.SESSION_SECRET || 'your-default-secret';
+app.use('/api/auth', authRoutes);
+app.use(session({
+  // store: new RedisStore({ client: redisClient }), // this is optional if you want redis then you can use it
+  secret: sessionSecret,       // Use the same secret for all sessions
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false },   // Set to true if using HTTPS
+}));
+// express based routing
 app.use((req, res, next) => {
-  const allowedOrigins = ['http://localhost:3000'];
   if (allowedOrigins.indexOf(req.headers.origin) > -1) {
     res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
   }
@@ -25,15 +45,46 @@ app.use((req, res, next) => {
   );
   next();
 });
-app.use(express.json());
+// CORS configuration with multiple origins and headers
+app.use(cors({
+  origin: function (origin, callback) {
+    // Check if the request's origin is in the list of allowed origins
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true); // Allow the request if the origin is in the list
+    } else {
+      callback(new Error('Not allowed by CORS')); // Reject the request if the origin is not allowed
+    }
+  },
+  methods: 'GET, POST, PATCH, PUT, DELETE, OPTIONS', // Allow multiple HTTP methods
+  allowedHeaders: 'Origin,Content-Type,Authorization,X-Requested-With', // Allow multiple headers
+  credentials: true, // Allow credentials (cookies, etc.) if needed
+}));
+// Limit request size for JSON payloads (e.g., 1 MB)
+app.use(express.json({ limit: '1mb' }));
 app.use(
   express.urlencoded({
     extended: true,
   })
 );
-
+app.get('/api/login', (req, res) => {
+  req.session.username = 'ganesh babu kuppusamy'; // Store username in session
+  res.status(200).json({ session_username: req.session.username });
+});
+// Route to log out and destroy the session
+app.get('/api/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.status(500).json({ message: 'Could not log out' });
+    }
+    res.json({ message: 'Logged out successfully' });
+  });
+});
+app.get('/page/home', (req, res) => {
+  const homePath = path.join(__dirname, 'pages/index.html');
+  res.sendFile(homePath);
+});
 app.get('/api/user', (req, res) => {
-    res.status(200).json({ fullname: 'ganesh babu kuppusamy', country: 'India' });
+  res.status(200).json({ fullname: 'ganesh babu kuppusamy', country: 'India' });
 });
 
 app.get('/api/infinity', (req, res) => {
@@ -361,4 +412,133 @@ app.get('/api/timeout', (req, res) => {
 app.listen(3030, () => {
   console.log(`app listening at 3030`);
 });
-// local dev url
+
+// http based routing
+let data = [
+  { id: 1, name: 'Item 1' },
+  { id: 2, name: 'Item 2' },
+];
+
+// Create the server
+const server = http.createServer((req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+  const urlpath = parsedUrl.pathname;
+  const method = req.method;
+
+  // Enable CORS for all requests by setting the necessary headers
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); // Allow specific methods
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type'); // Allow specific headers
+
+  // Handle preflight OPTIONS request (for complex requests like POST, PUT)
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204); // No content for preflight request
+    res.end();
+    return;
+  }
+
+
+  // Set the response headers
+  res.setHeader('Content-Type', 'application/json');
+
+  // GET all data
+  if (urlpath === '/api/data' && method === 'GET') {
+    res.writeHead(200);
+    res.end(JSON.stringify({ data }));
+  }
+  
+  // GET a single item by id
+  else if (urlpath.match(/\/api\/data\/\d+/) && method === 'GET') {
+    const id = parseInt(path.split('/')[3]);
+    const item = data.find(d => d.id === id);
+
+    if (item) {
+      res.writeHead(200);
+      res.end(JSON.stringify(item));
+    } else {
+      res.writeHead(404);
+      res.end(JSON.stringify({ error: 'Item not found' }));
+    }
+  }
+  
+  // POST: Add new item
+  else if (urlpath === '/api/data' && method === 'POST') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+
+    req.on('end', () => {
+      const newItem = JSON.parse(body);
+      newItem.id = data.length + 1;
+      data.push(newItem);
+
+      res.writeHead(201);
+      res.end(JSON.stringify({ message: 'Item added', newItem }));
+    });
+  }
+  
+  // PUT: Update an existing item by id
+  else if (urlpath.match(/\/api\/data\/\d+/) && method === 'PUT') {
+    const id = parseInt(path.split('/')[3]);
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+
+    req.on('end', () => {
+      const updatedItem = JSON.parse(body);
+      const itemIndex = data.findIndex(d => d.id === id);
+
+      if (itemIndex !== -1) {
+        data[itemIndex] = { ...data[itemIndex], ...updatedItem };
+        res.writeHead(200);
+        res.end(JSON.stringify({ message: 'Item updated', data: data[itemIndex] }));
+      } else {
+        res.writeHead(404);
+        res.end(JSON.stringify({ error: 'Item not found' }));
+      }
+    });
+  }
+
+  // DELETE: Delete an item by id
+  else if (urlpath.match(/\/api\/data\/\d+/) && method === 'DELETE') {
+    const id = parseInt(path.split('/')[3]);
+    const itemIndex = data.findIndex(d => d.id === id);
+
+    if (itemIndex !== -1) {
+      data = data.filter(d => d.id !== id);
+      res.writeHead(200);
+      res.end(JSON.stringify({ message: 'Item deleted' }));
+    } else {
+      res.writeHead(404);
+      res.end(JSON.stringify({ error: 'Item not found' }));
+    }
+  }
+  else if (urlpath === '/page/home' && method === 'GET') {
+    // Serve another HTML file
+    const aboutPath = path.join(__dirname, 'pages/index.html');
+    fs.readFile(aboutPath, 'utf8', (err, data) => {
+      if (err) {
+        res.writeHead(500, { 'Content-Type': 'text/html' });
+        res.end('<h1>500 - Server Error</h1>');
+      } else {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(data);
+      }
+    });
+  } 
+
+  // Handle 404 Not Found
+  else {
+    res.writeHead(404);
+    res.end(JSON.stringify({ error: 'Not Found' }));
+  }
+});
+
+// Start the server
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
