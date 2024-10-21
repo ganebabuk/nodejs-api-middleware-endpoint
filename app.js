@@ -66,6 +66,37 @@ app.use(
     extended: true,
   })
 );
+// Middleware for timeout handling
+const timeoutMiddleware = (req, res, next) => {
+  const _timer = Date.now();
+  console.log('_timer:', _timer);
+
+  // Store the timeout ID
+  let timeoutId;
+
+  // Function to check for timeout
+  const checkTimeout = () => {
+    if (Date.now() > _timer + 30000) { // 30 seconds timeout
+      console.log('_now:', Date.now());
+      return res.status(503).json({ error: 'Request timed out' });
+    } else {
+      timeoutId = setTimeout(checkTimeout, 1000); // Check every 1 second
+    }
+  };
+
+  // Start the timeout check
+  checkTimeout();
+
+  // Clear timeout when the request is finished or aborted
+  res.on('finish', () => clearTimeout(timeoutId));
+  res.on('close', () => clearTimeout(timeoutId));
+
+  // Call the next middleware or route handler
+  next();
+};
+
+// Apply middleware to all routes
+app.use(timeoutMiddleware);
 app.get('/api/login', (req, res) => {
   req.session.username = 'ganesh babu kuppusamy'; // Store username in session
   res.status(200).json({ session_username: req.session.username });
@@ -85,20 +116,6 @@ app.get('/page/home', (req, res) => {
 });
 app.get('/api/user', (req, res) => {
   res.status(200).json({ fullname: 'ganesh babu kuppusamy', country: 'India' });
-});
-
-app.get('/api/infinity', (req, res) => {
-  const x = true;
-  const _timer = Date.now();
-  console.log('_timer:', _timer);
-  while (x) {
-    // console.log("In loop");
-    if (Date.now() > _timer + 30000) {
-      console.log('_now:', Date.now());
-      res.status(503).json({ error: 'time out error' });
-      break;
-    }
-  }
 });
 
 app.post('/api/file-upload', (req, res, next) => {
