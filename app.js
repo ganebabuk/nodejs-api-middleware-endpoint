@@ -66,6 +66,7 @@ app.use(
     extended: true,
   })
 );
+
 // Middleware for timeout handling
 const timeoutMiddleware = (req, res, next) => {
   const _timer = Date.now();
@@ -76,7 +77,7 @@ const timeoutMiddleware = (req, res, next) => {
 
   // Function to check for timeout
   const checkTimeout = () => {
-    if (Date.now() > _timer + 30000) { // 30 seconds timeout
+    if (Date.now() > _timer + 10000) { // 10 seconds timeout
       console.log('_now:', Date.now());
       return res.status(503).json({ error: 'Request timed out' });
     } else {
@@ -95,8 +96,23 @@ const timeoutMiddleware = (req, res, next) => {
   next();
 };
 
+
 // Apply middleware to all routes
 app.use(timeoutMiddleware);
+
+app.get('/api/infinity', (req, res) => {
+  setTimeout(() => {
+    if (!res.headersSent) {  // Always check if response has already been sent
+      res.status(200).json({ fullname: 'ganesh babu kuppusamy', country: 'India' });
+    }
+  }, 20000);  // 20 seconds timeout, which exceeds the middleware's 10 seconds limit
+});
+
+
+app.get('/api/user', (req, res) => {
+  res.status(200).json({ fullname: 'ganesh babu kuppusamy', country: 'India' });
+});
+
 app.get('/api/login', (req, res) => {
   req.session.username = 'ganesh babu kuppusamy'; // Store username in session
   res.status(200).json({ session_username: req.session.username });
