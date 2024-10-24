@@ -96,6 +96,23 @@ const timeoutMiddleware = (req, res, next) => {
   next();
 };
 
+const timeoutPromise = (duration) => {
+  return new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new Error('Request timed out'));
+    }, duration);
+  });
+};
+
+// Simulated asynchronous database operation
+const getUserFromDB = () => {
+  return new Promise((resolve) => {
+    // Simulate a long-running operation (e.g., DB query)
+    setTimeout(() => {
+      resolve({ fullname: 'Ganesh Babu Kuppusamy', country: 'India' });
+    }, 6000); // Simulate a delay of 6 seconds
+  });
+};
 
 // Apply middleware to all routes
 app.use(timeoutMiddleware);
@@ -108,6 +125,20 @@ app.get('/api/infinity', (req, res) => {
   }, 20000);  // 20 seconds timeout, which exceeds the middleware's 10 seconds limit
 });
 
+// Route with timeout handling
+app.get('/api/infinity2', async (req, res) => {
+  try {
+    // Set a timeout of 5 seconds for the database operation
+    const user = await Promise.race([
+      getUserFromDB(), // The asynchronous operation
+      timeoutPromise(5000) // The timeout promise
+    ]);
+    res.status(200).json(user);
+  } catch (error) {
+    // Handle timeout error or other errors
+    res.status(500).json({ error: error.message });
+  }
+});
 
 app.get('/api/user', (req, res) => {
   res.status(200).json({ fullname: 'ganesh babu kuppusamy', country: 'India' });
