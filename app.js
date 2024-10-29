@@ -15,10 +15,25 @@ const cors = require('cors');
 const session = require('express-session');
 const redis = require('redis');
 const authRoutes = require('./routes/auth');
+const multer = require('multer');
 // const connectRedis = require('connect-redis');
 // const RedisStore = connectRedis(session);
 // const redisClient = redis.createClient();
 const app = express();
+// Configure multer storage to include the original file extension
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    // Extract file extension from original name
+    const extension = path.extname(file.originalname);
+    // Generate a new name with extension
+    cb(null, `${file.fieldname}-${Date.now()}${extension}`);
+  },
+});
+
+const upload = multer({ storage });
 const allowedOrigins = ['http://localhost:3000'];
 // Retrieve secret from environment variable or configuration
 const sessionSecret = process.env.SESSION_SECRET || 'your-default-secret';
@@ -600,9 +615,38 @@ const server = http.createServer((req, res) => {
   }
 });
 
-// Start the server
-const PORT = 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.post('/upload', upload.single('file'), (req, res) => {
+  const { file } = req;
+  if (!file) {
+    return res.status(400).send('No file uploaded.');
+  }
+
+  const filePath = path.join(__dirname, 'uploads', file.filename);
+  const fileSize = file.size;
+  let uploadedBytes = 0;
+
+  const readStream = fs.createReadStream(filePath);
+
+  readStream.on('data', (chunk) => {
+    uploadedBytes += chunk.length;
+    const uploadPercentage = Math.round((uploadedBytes / fileSize) * 100);
+    console.log(`Upload Progress: ${uploadPercentage}%`);
+  });
+
+  readStream.on('end', () => {
+    console.log('File uploaded successfully');
+    res.send({ message: 'File uploaded successfully' });
+  });
+
+  readStream.on('error', (err) => {
+    console.error('Error uploading file:', err);
+    res.status(500).send('Error uploading file');
+  });
 });
+
+// Start the server
+// const PORT = 3000;
+// server.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
 
