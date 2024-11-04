@@ -616,6 +616,45 @@ const server = http.createServer((req, res) => {
 });
 
 app.post('/upload', upload.single('file'), (req, res) => {
+  // React UI code
+  // import React, { useState } from 'react';
+  // import axios from 'axios';
+
+  // function App() {
+  //   const [progress, setProgress] = useState(0);
+
+  //   const handleFileUpload = (event) => {
+  //     const file = event.target.files[0];
+  //     const formData = new FormData();
+  //     formData.append('file', file);
+
+  //     axios.post('http://localhost:3030/upload', formData, {
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data',
+  //       },
+  //       onUploadProgress: (progressEvent) => {
+  //         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+  //         setProgress(percentCompleted);
+  //       },
+  //     })
+  //     .then((response) => {
+  //       console.log('File uploaded successfully:', response.data);
+  //     })
+  //     .catch((error) => {
+  //       console.error('Error uploading file:', error);
+  //     });
+  //   };
+
+  //   return (
+  //     <div>
+  //       <input type="file" onChange={handleFileUpload} />
+  //       <div>Upload Progress: {progress}%</div>
+  //     </div>
+  //   );
+  // }
+
+  // export default App;
+
   const { file } = req;
   if (!file) {
     return res.status(400).send('No file uploaded.');
